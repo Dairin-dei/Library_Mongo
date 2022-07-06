@@ -107,6 +107,6 @@ export const setMongoConnection = async (callback: TCallback) => {
   }
 };
 
-export const getCollectionUsers = () => {
-  return client.db().collection('users');
+export const getCollectionByName = (collectionName: string) => {
+  return client.db().collection(collectionName);
 };

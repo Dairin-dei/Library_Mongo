@@ -1,13 +1,12 @@
 import { IncomingMessage, ServerResponse } from 'http';
 
 import {
-  findAllUsersInDataBase,
-  findUserByIdInDataBase,
-  createNewUserInDatabase,
-  updateUserInDatabase,
-  removeUserFromDatabase,
+  findAllUsersDb,
+  findUserByIdDb,
+  createUserDb,
+  updateUserDb,
+  removeUserDb,
 } from '../models/userModel';
-import { IUser } from '../interfaces';
 
 //@desc Gets all users from database
 //@route api/users
@@ -17,7 +16,7 @@ export async function getAllUsers(
   response: ServerResponse
 ) {
   try {
-    const userdInDatabase = await findAllUsersInDataBase();
+    const userdInDatabase = await findAllUsersDb();
     response.writeHead(200, { 'content-Type': 'application/json' });
     response.end(JSON.stringify(userdInDatabase));
   } catch (error) {
@@ -33,12 +32,7 @@ export async function getUser(
   response: ServerResponse
 ) {
   const userId = request.url?.split('/')[1] || '0';
-  //console.log('userId', userId);
-  // if (
-  //  userId.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)
-  // ) {
-  const user = await findUserByIdInDataBase(userId);
-  //console.log('getUser', user);
+  const user = await findUserByIdDb(userId);
   if (user !== undefined) {
     response.writeHead(200, { 'content-Type': 'application/json' });
     response.end(JSON.stringify(user));
@@ -48,14 +42,6 @@ export async function getUser(
       JSON.stringify({ message: `I don't know user with id ${userId}` })
     );
   }
-  /* } else {
-    response.writeHead(400, { 'content-Type': 'application/json' });
-    response.end(
-      JSON.stringify({
-        message: `Id ${userId} is not valid. Id should have uuid format`,
-      })
-    );
-  }*/
 }
 
 //@desc Creates new user
@@ -71,13 +57,8 @@ export async function createNewUser(
   });
   request.on('end', async () => {
     try {
-      // const { username, age, hobbies } = JSON.parse(body);
       const { username } = JSON.parse(body);
-      if (
-        username === undefined
-        //|| age === undefined ||
-        //hobbies === undefined
-      ) {
+      if (username === undefined) {
         response.writeHead(400, { 'content-Type': 'application/json' });
         response.end(
           JSON.stringify({
@@ -85,11 +66,7 @@ export async function createNewUser(
               "Hello. I'm sorry, but I couldn't add new user. You should fill all fields: username, age and hobbies",
           })
         );
-      } else if (
-        // isNaN(Number(age)) ||
-        username.trim() === ''
-        //|| !Array.isArray(hobbies)
-      ) {
+      } else if (username.trim() === '') {
         response.writeHead(500, { 'content-Type': 'application/json' });
         response.end(
           JSON.stringify({
@@ -98,8 +75,7 @@ export async function createNewUser(
           })
         );
       } else {
-        const newUser = await createNewUserInDatabase(username);
-        //, age, hobbies);
+        const newUser = await createUserDb(username);
 
         response.writeHead(201, { 'content-Type': 'application/json' });
         response.end(JSON.stringify(newUser));
@@ -124,24 +100,15 @@ export async function updateUser(
   response: ServerResponse
 ) {
   const userId = request.url?.split('/')[1] || '0';
-  // if (
-  //userId.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)
-  //) {
-  const user = await findUserByIdInDataBase(userId);
+  const user = await findUserByIdDb(userId);
   if (user != undefined) {
     let body = '';
     request.on('data', (chunk) => {
       body += chunk.toString();
       request.on('end', async () => {
         try {
-          //const { username, age, hobbies } = JSON.parse(body);
           const { username } = JSON.parse(body);
-          if (
-            username !== undefined &&
-            username.trim() === ''
-            // ||     (age !== undefined && isNaN(age)) ||
-            //(hobbies !== undefined && !Array.isArray(hobbies))
-          ) {
+          if (username !== undefined && username.trim() === '') {
             response.writeHead(500, { 'content-Type': 'application/json' });
             response.end(
               JSON.stringify({
@@ -150,12 +117,7 @@ export async function updateUser(
               })
             );
           } else {
-            const updateUser = await updateUserInDatabase(
-              userId,
-              username
-              //age,
-              //hobbies
-            );
+            const updateUser = await updateUserDb(userId, username);
             response.writeHead(200, { 'content-Type': 'application/json' });
             response.end(JSON.stringify(updateUser));
           }
@@ -177,14 +139,6 @@ export async function updateUser(
       })
     );
   }
-  /*  } else {
-    response.writeHead(400, { 'content-Type': 'application/json' });
-    response.end(
-      JSON.stringify({
-        message: `Id ${userId} is not valid. Id should have uuid format`,
-      })
-    );
-  }*/
 }
 
 //@desc Deletes a user
@@ -195,12 +149,9 @@ export async function deleteUser(
   response: ServerResponse
 ) {
   const userId = request.url?.split('/')[1] || '0';
-  // if (
-  //userId.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)
-  //) {
-  const user = await findUserByIdInDataBase(userId);
+  const user = await findUserByIdDb(userId);
   if (user != undefined) {
-    removeUserFromDatabase(userId);
+    removeUserDb(userId);
     response.writeHead(204, { 'content-Type': 'application/json' });
     response.end(
       JSON.stringify({
@@ -215,14 +166,6 @@ export async function deleteUser(
       })
     );
   }
-  /*} else {
-    response.writeHead(400, { 'content-Type': 'application/json' });
-    response.end(
-      JSON.stringify({
-        message: `Id ${userId} is not valid. Id should have uuid format`,
-      })
-    );
-  }*/
 }
 
 export function sentErrorMessage(response: ServerResponse) {

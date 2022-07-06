@@ -1,26 +1,22 @@
-//import { Collection, WithId } from 'mongodb';
-//import { v4 as uuid } from 'uuid';
 import { IUser } from '../interfaces';
-import { getCollectionUsers } from '../db';
+import { getCollectionByName } from '../db';
 import { ObjectId } from 'mongodb';
 
-//const USERS: Array<IUser> = [];
-
-export function findAllUsersInDataBase() {
+export function findAllUsersDb() {
   return new Promise((resolve, reject) => {
-    //resolve(USERS);
-    const collection = getCollectionUsers();
+    const collection = getCollectionByName('users');
     resolve(collection.find({}).toArray());
   });
 }
 
-export function findUserByIdInDataBase(userId: string) {
+export function findUserByIdDb(userId: string) {
   return new Promise((resolve, reject) => {
-    const collection = getCollectionUsers();
+    const collection = getCollectionByName('users');
 
     collection.findOne({ _id: new ObjectId(userId) }, (error, user) => {
       if (error) {
-        return console.log(error);
+        console.log(error);
+        resolve(null);
       }
       console.log(user);
       resolve(user);
@@ -28,36 +24,25 @@ export function findUserByIdInDataBase(userId: string) {
   });
 }
 
-export function createNewUserInDatabase(
-  username: string
-  //age: string,
-  //hobbies: string[]
-) {
+export function createUserDb(username: string) {
   return new Promise((resolve, reject) => {
-    const collection = getCollectionUsers();
+    const collection = getCollectionByName('users');
     const newUser: IUser = {
-      //id: uuid(),
       username,
-      // age: Number(age),
-      //  hobbies,
     };
     collection.insertOne(newUser, (error) => {
       if (error) {
-        return console.log(error);
+        console.log(error);
+        resolve(null);
       }
     });
     resolve(newUser);
   });
 }
 
-export async function updateUserInDatabase(
-  userId: string,
-  username: string
-  // age: string,
-  // hobbies: string[]
-) {
+export async function updateUserDb(userId: string, username: string) {
   return new Promise((resolve, reject) => {
-    const collection = getCollectionUsers();
+    const collection = getCollectionByName('users');
     if (username) {
       collection.findOneAndUpdate(
         { _id: new ObjectId(userId) },
@@ -65,7 +50,8 @@ export async function updateUserInDatabase(
         { returnDocument: 'after' },
         (err, result) => {
           if (err) {
-            return console.log(err);
+            console.log(err);
+            resolve(null);
           }
           const user = result.value;
           resolve(user);
@@ -75,15 +61,16 @@ export async function updateUserInDatabase(
   });
 }
 
-export function removeUserFromDatabase(userId: string) {
+export function removeUserDb(userId: string) {
   return new Promise((resolve, reject) => {
-    const collection = getCollectionUsers();
+    const collection = getCollectionByName('users');
 
     collection.findOneAndDelete(
       { _id: new ObjectId(userId) },
       (error, result) => {
         if (error) {
-          return console.log(error);
+          console.log(error);
+          resolve(null);
         }
         const user = result.value;
         resolve(user);
