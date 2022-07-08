@@ -1,41 +1,53 @@
-import { IAuthor, ICountry } from '../interfaces';
+import { IAuthorDb, ICountry } from '../interfaces';
 import { getCollectionByName } from '../db';
-import { findCountryByNameDb, findOrCreateCountryByName } from './countryModel';
+import { ObjectId } from 'mongodb';
 
-export function findAllAuthors() {
+export function findAllAuthorsDb() {
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('authors');
     resolve(collection.find({}).toArray());
   });
 }
 
-export function findAuthorByIdDb(id: string): Promise<IAuthor> {
+export function findAuthorByIdDb(id: string): Promise<IAuthorDb> {
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('authors');
-    collection.findOne({ _id: new Object(id) }, (error, item) => {
+    collection.findOne({ _id: new ObjectId(id) }, async (error, item) => {
       if (error) {
         console.log(error.message);
         resolve(null);
       }
-      resolve(item as unknown as IAuthor);
+      resolve(item as unknown as IAuthorDb);
+    });
+  });
+}
+
+export function findAuthorByNameDb(name: string): Promise<IAuthorDb> {
+  return new Promise((resolve, reject) => {
+    const collection = getCollectionByName('authors');
+    collection.findOne({ name: name.trim() }, async (error, item) => {
+      if (error) {
+        console.log(error.message);
+        resolve(null);
+      }
+      resolve(item as unknown as IAuthorDb);
     });
   });
 }
 
 export async function createAuthorDb(
   name: string,
-  fullName: string,
-  originalName: string,
-  countryName: string
+  fullName = '',
+  originalName = '',
+  country: ICountry | null = null
 ) {
   const collection = getCollectionByName('authors');
-  const country = await findOrCreateCountryByName(countryName);
   return new Promise((resolve, reject) => {
     const newAuthor = {
       name: name,
       fullName: fullName,
       originalName: originalName,
-      countryId: country._id,
+      countryId: country === null ? '' : country._id,
     };
     collection.insertOne(newAuthor, (error) => {
       if (error) {
@@ -50,26 +62,26 @@ export async function createAuthorDb(
 export async function updateAuthorDb(
   id: string,
   name = '',
-  fullName: 0,
-  originalName: 0,
-  countryName: ''
+  fullName = 0,
+  originalName = 0,
+  country: ICountry | string = ''
 ) {
-  const currentAuthor: IAuthor = await findAuthorByIdDb(id);
-
-  const country =
-    countryName === '' ? null : await findOrCreateCountryByName(countryName);
+  const currentAuthor: IAuthorDb = await findAuthorByIdDb(id);
 
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('authors');
-    if (name || fullName || originalName || countryName) {
+    if (name || fullName || originalName || country) {
       collection.findOneAndUpdate(
-        { id: new Object(id) },
+        { _id: new ObjectId(id) },
         {
           $set: {
             name: name || currentAuthor.name,
             fullName: fullName || currentAuthor.fullName,
             originalName: originalName || currentAuthor.originalName,
-            country: country === null ? currentAuthor.country._id : country._id,
+            country:
+              country === ''
+                ? currentAuthor.countryId
+                : (country as ICountry)._id,
           },
         },
         { returnDocument: 'after' },
@@ -85,10 +97,10 @@ export async function updateAuthorDb(
   });
 }
 
-export function removeVolumeDb(id: string) {
+export function removeAuthorDb(id: string) {
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('authors');
-    collection.findOneAndDelete({ _id: new Object(id) }, (error, result) => {
+    collection.findOneAndDelete({ _id: new ObjectId(id) }, (error, result) => {
       if (error) {
         console.log(error.message);
         resolve(null);

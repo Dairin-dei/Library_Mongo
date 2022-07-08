@@ -17,32 +17,55 @@ export interface ILanguage {
   _id?: string;
   name: string;
 }
+export interface IVolume {
+  _id?: string;
+  name: string;
+  year?: number;
+  cabinet?: number;
+  shelf?: number;
+  picture?: string;
+}
 
-export interface IAuthor {
+export interface IAuthorDb {
   _id?: string;
   name: string;
   fullName: string;
   originalName: string;
-  country: ICountry;
+  countryId: string;
 }
 
-export interface iBook {
+export interface IAuthor {
+  _id?: string;
+  name: string;
+  fullName?: string;
+  originalName?: string;
+  country?: ICountry;
+}
+
+export interface IBookDb {
   _id?: string;
   name: string;
   originalName: string;
-  authorMainId: IAuthor;
-  authorsIds: IAuthor[];
-  genreMainId: IGenre;
-  genresIds: IGenre[];
+  authorMainId: string;
+  authorsIds: string[];
+  languageId: string;
+  genreMainId: string;
+  genresIds: string[];
   year: number;
-  volumeId: IVolume;
+  volumesIds: string[];
+  countryId: string;
 }
 
-export interface IVolume {
+export interface IBook {
   _id?: string;
   name: string;
-  year: number;
-  cabinet: number;
-  shelf: number;
-  picture: string;
+  originalName?: string;
+  authorMain?: IAuthor;
+  authors?: IAuthor[];
+  language: ILanguage;
+  genreMain?: IGenre;
+  genres?: IGenre[];
+  year?: number;
+  volumes: IVolume[];
+  country?: ICountry;
 }

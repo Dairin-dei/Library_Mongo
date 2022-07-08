@@ -1,8 +1,9 @@
 import { ICountry } from '../interfaces';
 import { getCollectionByName } from '../db';
 import { resolve } from 'path';
+import { ObjectId } from 'mongodb';
 
-export function findAllCountries() {
+export function findAllCountriesDb() {
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('countries');
     resolve(collection.find({}).toArray());
@@ -12,7 +13,7 @@ export function findAllCountries() {
 export function findCountryByIdDb(id: string): Promise<ICountry | null> {
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('countries');
-    collection.findOne({ _id: new Object(id) }, (error, item) => {
+    collection.findOne({ _id: new ObjectId(id) }, (error, item) => {
       if (error) {
         console.log(error.message);
         resolve(null);
@@ -22,7 +23,7 @@ export function findCountryByIdDb(id: string): Promise<ICountry | null> {
   });
 }
 
-export function findCountryByNameDb(name: string):Promise<ICountry|null {
+export function findCountryByNameDb(name: string): Promise<ICountry | null> {
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('countries');
     collection.findOne({ name: name }, (error, item) => {
@@ -35,21 +36,9 @@ export function findCountryByNameDb(name: string):Promise<ICountry|null {
   });
 }
 
-export async function findOrCreateCountryByName(name: string):Promise<ICountry> {
-  const country: ICountry | null = await findCountryByNameDb(name);
+export function createCountryDb(name: string): Promise<ICountry> {
   return new Promise((resolve, reject) => {
-  if (country) {
-    resolve(country);
-  }
-  const newCountry:ICountry = await createCountryDb(name)
-  resolve(newCountry);
-})
-}
-
-
-export function createCountryDb(name: string):Promise<ICountry> {
-  return new Promise((resolve, reject) => {
-    const newCountry: ICountry = {
+    const newCountry = {
       name: name,
     };
     const collection = getCollectionByName('countries');
@@ -68,7 +57,7 @@ export function updateCountryDb(id: string, name: string) {
     const collection = getCollectionByName('countries');
     if (name) {
       collection.findOneAndUpdate(
-        { id: new Object(id) },
+        { _id: new ObjectId(id) },
         { $set: { name: name } },
         { returnDocument: 'after' },
         (error, result) => {
@@ -86,7 +75,7 @@ export function updateCountryDb(id: string, name: string) {
 export function removeCountryDb(id: string) {
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('countries');
-    collection.findOneAndDelete({ _id: new Object(id) }, (error, result) => {
+    collection.findOneAndDelete({ _id: new ObjectId(id) }, (error, result) => {
       if (error) {
         console.log(error.message);
         resolve(null);

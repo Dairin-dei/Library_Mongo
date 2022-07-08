@@ -69,10 +69,10 @@ export const setMongoConnection = async (callback: TCallback) => {
         if (err) {
           console.log(err.message);
         } else if (!isCollectionExists) {
-          await client.db().createCollection('genres');
+          await client.db().createCollection('authors');
         }
         if (!err) {
-          console.log('Collection "genres" is accessed');
+          console.log('Collection "authors" is accessed');
         }
       });
     client

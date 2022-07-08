@@ -27,7 +27,7 @@ export function findUserByIdDb(userId: string) {
 export function createUserDb(username: string) {
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('users');
-    const newUser: IUser = {
+    const newUser = {
       username,
     };
     collection.insertOne(newUser, (error) => {

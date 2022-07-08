@@ -11,14 +11,14 @@ import {
 //@desc Gets all users from database
 //@route api/users
 
-export async function getAllUsers(
+export async function findAllUsers(
   request: IncomingMessage,
   response: ServerResponse
 ) {
   try {
-    const userdInDatabase = await findAllUsersDb();
+    const usersInDatabase = await findAllUsersDb();
     response.writeHead(200, { 'content-Type': 'application/json' });
-    response.end(JSON.stringify(userdInDatabase));
+    response.end(JSON.stringify(usersInDatabase));
   } catch (error) {
     console.log('Hello.', error);
   }
@@ -27,7 +27,7 @@ export async function getAllUsers(
 //@desc Gets user by id from database
 //@route api/users/${id}
 
-export async function getUser(
+export async function findUser(
   request: IncomingMessage,
   response: ServerResponse
 ) {
@@ -55,7 +55,9 @@ export async function createNewUser(
   request.on('data', (chunk) => {
     body += chunk.toString();
   });
+
   request.on('end', async () => {
+    console.log('user', JSON.parse(body));
     try {
       const { username } = JSON.parse(body);
       if (username === undefined) {
@@ -63,7 +65,7 @@ export async function createNewUser(
         response.end(
           JSON.stringify({
             message:
-              "Hello. I'm sorry, but I couldn't add new user. You should fill all fields: username, age and hobbies",
+              "Hello. I'm sorry, but I couldn't add new user. You should fill username",
           })
         );
       } else if (username.trim() === '') {
@@ -71,7 +73,7 @@ export async function createNewUser(
         response.end(
           JSON.stringify({
             message:
-              "Hello. I'm sorry, but I couldn't add new user. You should send non-empty username, convertible to number age and array-like hobbies",
+              "Hello. I'm sorry, but I couldn't add new user. You should send non-empty username",
           })
         );
       } else {
@@ -85,7 +87,7 @@ export async function createNewUser(
       response.end(
         JSON.stringify({
           message:
-            "Hello. I'm sorry, but I couldn't add new user. You should fill all fields: username, age and hobbies",
+            "Hello. I'm sorry, but I couldn't add new user. You should remove mistakes",
         })
       );
     }
@@ -108,12 +110,12 @@ export async function updateUser(
       request.on('end', async () => {
         try {
           const { username } = JSON.parse(body);
-          if (username !== undefined && username.trim() === '') {
-            response.writeHead(500, { 'content-Type': 'application/json' });
+          if (username === undefined || username.trim() === '') {
+            response.writeHead(400, { 'content-Type': 'application/json' });
             response.end(
               JSON.stringify({
                 message:
-                  "Hello. I'm sorry, but I couldn't add new user. You should send non-empty username and/or convertible to number age, and/or array-like hobbies",
+                  "Hello. I'm sorry, but I couldn't update this user. You should send non-empty username",
               })
             );
           } else {
@@ -122,7 +124,7 @@ export async function updateUser(
             response.end(JSON.stringify(updateUser));
           }
         } catch {
-          response.writeHead(400, { 'content-Type': 'application/json' });
+          response.writeHead(500, { 'content-Type': 'application/json' });
           response.end(
             JSON.stringify({
               message: `Hello. You quite possibly have mistakes in sent data. Please check`,
@@ -166,13 +168,4 @@ export async function deleteUser(
       })
     );
   }
-}
-
-export function sentErrorMessage(response: ServerResponse) {
-  response.writeHead(404, { 'content-Type': 'application/json' });
-  response.end(
-    JSON.stringify({
-      message: "Hello. I'm sorry, but I don't know answer to this request",
-    })
-  );
 }

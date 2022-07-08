@@ -1,24 +1,23 @@
 import { default as express } from 'express';
 
 import {
-  getAllUsers,
-  getUser,
+  findAllUsers,
+  findUser,
   createNewUser,
   updateUser,
   deleteUser,
-  sentErrorMessage,
 } from '../controllers/userController';
 
 const usersRouter = express.Router();
 
 usersRouter.get('/', (request, response) => {
   //  console.log(request.method, request.url);
-  getAllUsers(request, response);
+  findAllUsers(request, response);
 });
 
 usersRouter.get('/:id', (request, response) => {
   //  console.log(request.method, request.url, request.params.id);
-  getUser(request, response);
+  findUser(request, response);
 });
 
 usersRouter.post('/', (request, response) => {

@@ -1,7 +1,8 @@
 import { IVolume } from '../interfaces';
 import { getCollectionByName } from '../db';
+import { ObjectId } from 'mongodb';
 
-export function findAllVolumes() {
+export function findAllVolumesDb() {
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('volumes');
     resolve(collection.find({}).toArray());
@@ -11,7 +12,20 @@ export function findAllVolumes() {
 export function findVolumeByIdDb(id: string): Promise<IVolume> {
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('volumes');
-    collection.findOne({ _id: new Object(id) }, (error, item) => {
+    collection.findOne({ _id: new ObjectId(id) }, (error, item) => {
+      if (error) {
+        console.log(error.message);
+        resolve(null);
+      }
+      resolve(item as unknown as IVolume);
+    });
+  });
+}
+
+export function findVolumeByNameDb(name: string): Promise<IVolume | null> {
+  return new Promise((resolve, reject) => {
+    const collection = getCollectionByName('volumes');
+    collection.findOne({ name: name }, (error, item) => {
       if (error) {
         console.log(error.message);
         resolve(null);
@@ -27,9 +41,9 @@ export function createVolumeDb(
   shelf: number,
   picture: string,
   year: number
-) {
+): Promise<IVolume | null> {
   return new Promise((resolve, reject) => {
-    const newVolume: IVolume = {
+    const newVolume = {
       name: name,
       cabinet: cabinet,
       shelf: shelf,
@@ -50,17 +64,17 @@ export function createVolumeDb(
 export async function updateVolumeDb(
   id: string,
   name = '',
-  cabinet: 0,
-  shelf: 0,
-  picture: '',
-  year: 1
+  cabinet = 0,
+  shelf = 0,
+  picture = '',
+  year = 1
 ) {
   const currentVolume: IVolume = await findVolumeByIdDb(id);
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('volumes');
     if (name || cabinet || shelf || picture || year) {
       collection.findOneAndUpdate(
-        { id: new Object(id) },
+        { _id: new ObjectId(id) },
         {
           $set: {
             name: name || currentVolume.name,
@@ -86,7 +100,7 @@ export async function updateVolumeDb(
 export function removeVolumeDb(id: string) {
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('volumes');
-    collection.findOneAndDelete({ _id: new Object(id) }, (error, result) => {
+    collection.findOneAndDelete({ _id: new ObjectId(id) }, (error, result) => {
       if (error) {
         console.log(error.message);
         resolve(null);
