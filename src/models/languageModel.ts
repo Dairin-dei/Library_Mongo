@@ -1,6 +1,7 @@
-import { ILanguage } from '../interfaces';
+import { ILanguage } from '../tools/interfaces';
 import { getCollectionByName } from '../db';
 import { ObjectId } from 'mongodb';
+import { EMPTY_LANGUAGE } from '../tools/const';
 
 export function findAllLanguagesDb() {
   return new Promise((resolve, reject) => {

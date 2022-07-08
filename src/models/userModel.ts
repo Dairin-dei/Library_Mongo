@@ -1,4 +1,4 @@
-import { IUser } from '../interfaces';
+import { IUser } from '../tools/interfaces';
 import { getCollectionByName } from '../db';
 import { ObjectId } from 'mongodb';
 

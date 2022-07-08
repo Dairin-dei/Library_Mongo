@@ -1,4 +1,4 @@
-import { ICountry } from '../interfaces';
+import { ICountry } from '../tools/interfaces';
 import { getCollectionByName } from '../db';
 import { resolve } from 'path';
 import { ObjectId } from 'mongodb';

@@ -20,10 +20,10 @@ export interface ILanguage {
 export interface IVolume {
   _id?: string;
   name: string;
-  year?: number;
   cabinet?: number;
   shelf?: number;
   picture?: string;
+  year?: number;
 }
 
 export interface IAuthorDb {

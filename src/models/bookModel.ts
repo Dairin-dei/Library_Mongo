@@ -5,10 +5,16 @@ import {
   IGenre,
   ILanguage,
   IVolume,
-} from '../interfaces';
+} from '../tools/interfaces';
 import { getCollectionByName } from '../db';
 import { addNewItemIntoArrayIDs, convertArrayToArrayIds } from '../tools/tools';
 import { ObjectId } from 'mongodb';
+import {
+  EMPTY_AUTHOR,
+  EMPTY_COUNTRY,
+  EMPTY_GENRE,
+  EMPTY_LANGUAGE,
+} from '../tools/const';
 
 export function findAllBooksDb() {
   return new Promise((resolve, reject) => {
@@ -46,14 +52,14 @@ export function findBookByNameDb(name: string): Promise<IBookDb> {
 export async function createBookDb(
   name: string,
   originalName = '',
-  authorMain: IAuthor | null = null,
+  authorMain: IAuthor = EMPTY_AUTHOR,
   authors: IAuthor[] = [],
-  language: ILanguage | null = null,
-  genreMain: IGenre | null = null,
+  language: ILanguage = EMPTY_LANGUAGE,
+  genreMain: IGenre = EMPTY_GENRE,
   genres: IGenre[] = [],
   year = 0,
   volumes: IVolume[] = [],
-  country: ICountry | null = null
+  country: ICountry = EMPTY_COUNTRY
 ): Promise<IBookDb> {
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('books');
@@ -83,42 +89,37 @@ export async function updateBookDb(
   id: string,
   name: string,
   originalName = '',
-  author: IAuthor | null = null,
-  language: ILanguage | null = null,
-  genre: IGenre | null = null,
+  authorMain: IAuthor = EMPTY_AUTHOR,
+  authors: IAuthor[] = [],
+  language: ILanguage = EMPTY_LANGUAGE,
+  genreMain: IGenre = EMPTY_GENRE,
+  genres: IGenre[] = [],
   year = 0,
-  volume: IVolume | null = null,
-  country: ICountry | null = null
+  volumes: IVolume[] = [],
+  country: ICountry = EMPTY_COUNTRY
 ) {
   const currentBook: IBookDb = await findBookByIdDb(id);
 
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('books');
 
-    if (author) {
+    if (authorMain) {
       if (!currentBook.authorsIds.length) {
-        currentBook.authorMainId = author._id;
+        currentBook.authorMainId = authorMain._id;
       }
       currentBook.authorsIds = addNewItemIntoArrayIDs(
         currentBook.authorsIds,
-        author._id
+        authorMain._id
       );
     }
 
-    if (genre) {
+    if (genreMain) {
       if (!currentBook.genresIds.length) {
-        currentBook.genreMainId = genre._id;
+        currentBook.genreMainId = genreMain._id;
       }
       currentBook.genresIds = addNewItemIntoArrayIDs(
         currentBook.genresIds,
-        genre._id
-      );
-    }
-
-    if (volume) {
-      currentBook.volumesIds = addNewItemIntoArrayIDs(
-        currentBook.volumesIds,
-        volume._id
+        genreMain._id
       );
     }
 
@@ -129,12 +130,12 @@ export async function updateBookDb(
           name: name || currentBook.name,
           originalName: originalName || currentBook.originalName,
           authorMainId: currentBook.authorMainId,
-          authorsIds: currentBook.authorsIds,
+          authorsIds: convertArrayToArrayIds(authors),
           languageId: language ? language._id : '',
           genreMainId: currentBook.genreMainId,
-          genresIds: currentBook.genresIds,
-          year: year,
-          volumesIds: currentBook.volumesIds,
+          genresIds: convertArrayToArrayIds(genres),
+          year: year !== 0 ? year : currentBook.year,
+          volumesIds: convertArrayToArrayIds(volumes),
           countryId: country ? country._id : '',
         },
       },

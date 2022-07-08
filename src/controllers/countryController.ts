@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { ICountry } from '../interfaces';
+import { ICountry } from '../tools/interfaces';
 import {
   createCountryDb,
   findAllCountriesDb,

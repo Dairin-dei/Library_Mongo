@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { ILanguage } from '../interfaces';
+import { ILanguage } from '../tools/interfaces';
 import {
   createLanguageDb,
   findAllLanguagesDb,

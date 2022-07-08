@@ -7,7 +7,7 @@ import {
   updateAuthorDb,
 } from '../models/authorModel';
 import { findOrCreateCountryByName } from '../controllers/countryController';
-import { ICountry } from '../interfaces';
+import { ICountry } from '../tools/interfaces';
 
 export async function findAllAuthors(
   request: IncomingMessage,

@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { IVolume } from '../interfaces';
+import { IVolume } from '../tools/interfaces';
 import {
   createVolumeDb,
   findAllVolumesDb,
@@ -90,7 +90,7 @@ export async function findOrCreateVolumeByName(name: string): Promise<IVolume> {
   if (volume) {
     return volume;
   }
-  const newVolume: IVolume = await createVolumeDb(name, 0, 0, '', 0);
+  const newVolume: IVolume = await createVolumeDb(name);
   return newVolume;
 }
 

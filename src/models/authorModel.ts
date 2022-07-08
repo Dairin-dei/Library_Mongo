@@ -1,6 +1,7 @@
-import { IAuthorDb, ICountry } from '../interfaces';
+import { IAuthorDb, ICountry } from '../tools/interfaces';
 import { getCollectionByName } from '../db';
 import { ObjectId } from 'mongodb';
+import { EMPTY_AUTHOR } from '../tools/const';
 
 export function findAllAuthorsDb() {
   return new Promise((resolve, reject) => {

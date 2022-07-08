@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from 'http';
-import { IGenre } from '../interfaces';
+import { IGenre } from '../tools/interfaces';
 import {
   createGenreDb,
   findAllGenresDb,

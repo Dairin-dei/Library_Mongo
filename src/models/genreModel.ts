@@ -1,4 +1,4 @@
-import { IGenre } from '../interfaces';
+import { IGenre } from '../tools/interfaces';
 import { getCollectionByName } from '../db';
 import { ObjectId } from 'mongodb';
 

@@ -1,4 +1,4 @@
-import { IVolume } from '../interfaces';
+import { IVolume } from '../tools/interfaces';
 import { getCollectionByName } from '../db';
 import { ObjectId } from 'mongodb';
 
@@ -37,10 +37,10 @@ export function findVolumeByNameDb(name: string): Promise<IVolume | null> {
 
 export function createVolumeDb(
   name: string,
-  cabinet: number,
-  shelf: number,
-  picture: string,
-  year: number
+  cabinet = 0,
+  shelf = 0,
+  picture = '',
+  year = 0
 ): Promise<IVolume | null> {
   return new Promise((resolve, reject) => {
     const newVolume = {
