@@ -112,16 +112,16 @@ export async function updateBookDb(
         authorMain._id
       );
     }
-
+    console.log('genreMain', genreMain);
     if (genreMain) {
-      if (!currentBook.genresIds.length) {
-        currentBook.genreMainId = genreMain._id;
-      }
+      currentBook.genreMainId = genreMain._id;
+
       currentBook.genresIds = addNewItemIntoArrayIDs(
         currentBook.genresIds,
         genreMain._id
       );
     }
+    console.log('currentBook.genresIds', currentBook.genresIds);
 
     collection.findOneAndUpdate(
       { _id: new ObjectId(id) },
@@ -130,10 +130,10 @@ export async function updateBookDb(
           name: name || currentBook.name,
           originalName: originalName || currentBook.originalName,
           authorMainId: currentBook.authorMainId,
-          authorsIds: convertArrayToArrayIds(authors),
+          authorsIds: currentBook.authorsIds,
           languageId: language ? language._id : '',
           genreMainId: currentBook.genreMainId,
-          genresIds: convertArrayToArrayIds(genres),
+          genresIds: currentBook.genresIds,
           year: year !== 0 ? year : currentBook.year,
           volumesIds: convertArrayToArrayIds(volumes),
           countryId: country ? country._id : '',

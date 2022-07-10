@@ -83,7 +83,7 @@ export async function createNewCountry(
 export async function findOrCreateCountryByName(
   name: string
 ): Promise<ICountry> {
-  const country: ICountry | null = await findCountryByNameDb(name);
+  const country: ICountry = await findCountryByNameDb(name);
   if (country) {
     return country;
   }

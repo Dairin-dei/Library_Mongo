@@ -2,6 +2,7 @@ import { ICountry } from '../tools/interfaces';
 import { getCollectionByName } from '../db';
 import { resolve } from 'path';
 import { ObjectId } from 'mongodb';
+import { EMPTY_COUNTRY } from '../tools/const';
 
 export function findAllCountriesDb() {
   return new Promise((resolve, reject) => {
@@ -23,13 +24,13 @@ export function findCountryByIdDb(id: string): Promise<ICountry | null> {
   });
 }
 
-export function findCountryByNameDb(name: string): Promise<ICountry | null> {
+export function findCountryByNameDb(name: string): Promise<ICountry> {
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('countries');
     collection.findOne({ name: name }, (error, item) => {
       if (error) {
         console.log(error.message);
-        resolve(null);
+        resolve(EMPTY_COUNTRY);
       }
       resolve(item as unknown as ICountry);
     });
@@ -45,7 +46,7 @@ export function createCountryDb(name: string): Promise<ICountry> {
     collection.insertOne(newCountry, (error) => {
       if (error) {
         console.log(error.message);
-        resolve(null);
+        resolve(EMPTY_COUNTRY);
       }
       resolve(newCountry);
     });
