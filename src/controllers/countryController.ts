@@ -8,6 +8,7 @@ import {
   removeCountryDb,
   updateCountryDb,
 } from '../models/countryModel';
+import { EMPTY_COUNTRY } from '../tools/const';
 
 export async function findAllCountries(
   request: IncomingMessage,
@@ -83,12 +84,16 @@ export async function createNewCountry(
 export async function findOrCreateCountryByName(
   name: string
 ): Promise<ICountry> {
-  const country: ICountry = await findCountryByNameDb(name);
-  if (country) {
-    return country;
+  if (name) {
+    const country: ICountry = await findCountryByNameDb(name);
+    if (country) {
+      return country;
+    }
+    const newCountry: ICountry = await createCountryDb(name);
+    return newCountry;
+  } else {
+    return EMPTY_COUNTRY;
   }
-  const newCountry: ICountry = await createCountryDb(name);
-  return newCountry;
 }
 
 export async function updateCountry(
@@ -105,8 +110,8 @@ export async function updateCountry(
 
     request.on('end', async () => {
       try {
-        const { countryName } = JSON.parse(body);
-        if (countryName === undefined || countryName.trim() === '') {
+        const { name } = JSON.parse(body);
+        if (name === undefined || name.trim() === '') {
           response.writeHead(400, { 'content-Type': 'application/json' });
           response.end(
             JSON.stringify({
@@ -115,7 +120,7 @@ export async function updateCountry(
             })
           );
         } else {
-          const updatedCountry = await updateCountryDb(countryId, countryName);
+          const updatedCountry = await updateCountryDb(countryId, name);
           response.writeHead(200, { 'content-Type': 'application/json' });
           response.end(JSON.stringify(updatedCountry));
         }

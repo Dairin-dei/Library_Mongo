@@ -10,26 +10,34 @@ export function findAllLanguagesDb() {
   });
 }
 
-export function findLanguageByIdDb(id: string) {
+export function findLanguageByIdDb(id: string): Promise<ILanguage> {
+  try {
+    new ObjectId(id);
+  } catch {
+    console.log('Error in id');
+    return new Promise((resolve, reject) => {
+      resolve(null);
+    });
+  }
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('languages');
     collection.findOne({ _id: new ObjectId(id) }, (error, item) => {
       if (error) {
         console.log(error.message);
-        resolve(null);
+        resolve(EMPTY_LANGUAGE);
       }
-      resolve(item);
+      resolve(item as unknown as ILanguage);
     });
   });
 }
 
-export function findLanguageByNameDb(name: string): Promise<ILanguage | null> {
+export function findLanguageByNameDb(name: string): Promise<ILanguage> {
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('languages');
     collection.findOne({ name: name }, (error, item) => {
       if (error) {
         console.log(error.message);
-        resolve(null);
+        resolve(EMPTY_LANGUAGE);
       }
       resolve(item as unknown as ILanguage);
     });
@@ -53,6 +61,14 @@ export function createLanguageDb(name: string): Promise<ILanguage> {
 }
 
 export function updateLanguageDb(id: string, name: string) {
+  try {
+    new ObjectId(id);
+  } catch {
+    console.log('Error in id');
+    return new Promise((resolve, reject) => {
+      resolve(null);
+    });
+  }
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('languages');
     if (name) {
@@ -63,7 +79,7 @@ export function updateLanguageDb(id: string, name: string) {
         (error, result) => {
           if (error) {
             console.log(error.message);
-            resolve(null);
+            resolve(EMPTY_LANGUAGE);
           }
           resolve(result.value);
         }
@@ -73,12 +89,20 @@ export function updateLanguageDb(id: string, name: string) {
 }
 
 export function removeLanguageDb(id: string) {
+  try {
+    new ObjectId(id);
+  } catch {
+    console.log('Error in id');
+    return new Promise((resolve, reject) => {
+      resolve(null);
+    });
+  }
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('languages');
     collection.findOneAndDelete({ _id: new ObjectId(id) }, (error, result) => {
       if (error) {
         console.log(error.message);
-        resolve(null);
+        resolve(EMPTY_LANGUAGE);
       }
       resolve(result.value);
     });

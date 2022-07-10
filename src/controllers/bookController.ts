@@ -25,7 +25,10 @@ import {
   EMPTY_GENRE,
   EMPTY_LANGUAGE,
 } from '../tools/const';
-import { convertAuthorFromDbFormat } from '../tools/tools';
+import {
+  convertAuthorFromDbFormat,
+  convertBookFromDbFormat,
+} from '../tools/tools';
 import { createVolumeDb, findVolumeByIdDb } from '../models/volumeModel';
 import { findCountryByIdDb } from '../models/countryModel';
 import { findLanguageByIdDb } from '../models/languageModel';
@@ -37,8 +40,12 @@ export async function findAllBooks(
 ) {
   try {
     const booksInDatabase = await findAllBooksDb();
+    const booksArray = [];
+    for (const bookDb of booksInDatabase) {
+      booksArray.push(await convertBookFromDbFormat(bookDb));
+    }
     response.writeHead(200, { 'content-Type': 'application/json' });
-    response.end(JSON.stringify(booksInDatabase));
+    response.end(JSON.stringify(booksArray));
   } catch (error) {
     console.log("Sorry, can't get books", error.message);
     response.writeHead(200, { 'content-Type': 'application/json' });
@@ -51,6 +58,7 @@ export async function findBook(
   response: ServerResponse
 ) {
   const bookId = request.url?.split('/')[1] || '0';
+  //const book = await convertBookFromDbFormat(await findBookByIdDb(bookId));
   const book = await findBookByIdDb(bookId);
 
   if (book) {
@@ -142,9 +150,9 @@ export async function createNewBook(
         }
 
         if (Array.isArray(genres)) {
-          for (const item of genres) {
-            if (item) {
-              const adGenre = await findOrCreateGenreByName(item);
+          for (const genreName of genres) {
+            if (genreName) {
+              const adGenre = await findOrCreateGenreByName(genreName);
               bookGenres.push(adGenre);
             }
           }
@@ -160,6 +168,7 @@ export async function createNewBook(
         if (bookVolumes.length === 0) {
           bookVolumes.push(await createVolumeDb(name));
         }
+        // console.log(bookVolumes);
         const newBook = await createBookDb(
           name,
           originalName,
@@ -173,7 +182,7 @@ export async function createNewBook(
           bookCountry
         );
         response.writeHead(201, { 'content-Type': 'application/json' });
-        response.end(JSON.stringify(newBook));
+        response.end(JSON.stringify(await convertBookFromDbFormat(newBook)));
       }
     } catch (error) {
       response.writeHead(400, { 'content-Type': 'application/json' });
@@ -213,24 +222,29 @@ export async function updateBook(
           country,
         } = JSON.parse(body);
 
-        let bookCountry: ICountry = await findCountryByIdDb(
-          currentBook.countryId
-        );
+        let bookCountry: ICountry = EMPTY_COUNTRY;
         if (country) {
           bookCountry = await findOrCreateCountryByName(country);
         }
+        // console.log(bookCountry, country);
 
-        let bookAuthor: IAuthor = await findAuthorByIdDb(
-          currentBook.authorMainId
-        );
+        let bookAuthor: IAuthor = EMPTY_AUTHOR;
 
         const bookAuthors: IAuthor[] = [];
 
         if (Array.isArray(currentBook.authorsIds)) {
           for (const prevAuthor of currentBook.authorsIds) {
-            bookAuthors.push(await findAuthorByIdDb(prevAuthor));
+            bookAuthors.push(
+              await convertAuthorFromDbFormat(
+                await findAuthorByIdDb(prevAuthor)
+              )
+            );
           }
         }
+
+        // console.log('old', currentBook.authorsIds);
+        // console.log('old', bookAuthors);
+
         if (author) {
           bookAuthor = await convertAuthorFromDbFormat(
             await findAuthorByNameDb(author)
@@ -245,13 +259,16 @@ export async function updateBook(
             }
           }
         }
+        // console.log('bookAuthor', bookAuthor);
+        //  console.log('bookAuthor', bookAuthors);
+
         if (Array.isArray(authors)) {
           if (authors.length) {
-            for (const item of authors) {
-              const adAuthor = await findAuthorByNameDb(item);
+            for (const authorName of authors) {
+              const adAuthor = await findAuthorByNameDb(authorName);
               if (!adAuthor) {
                 console.log(
-                  `Автор с именем ${item} отсутствует в базе. Он не будет добавлен в список авторов книги.`
+                  `Автор с именем ${authorName} отсутствует в базе. Он не будет добавлен в список авторов книги.`
                 );
               } else {
                 const adNewAuthor = await convertAuthorFromDbFormat(adAuthor);
@@ -262,32 +279,28 @@ export async function updateBook(
             }
           }
         }
+        // console.log('after', bookAuthors);
 
-        let bookLanguage = (await findLanguageByIdDb(
-          currentBook.languageId
-        )) as ILanguage;
+        let bookLanguage = EMPTY_LANGUAGE;
 
         if (language) {
-          bookLanguage = (await findOrCreateLanguageByName(
-            language
-          )) as ILanguage;
+          bookLanguage = await findOrCreateLanguageByName(language);
         }
 
-        let bookGenre = (await findGenreByIdDb(
-          currentBook.genreMainId
-        )) as IGenre;
+        let bookGenre = EMPTY_GENRE;
+
         const bookGenres: IGenre[] = [];
         if (Array.isArray(currentBook.genresIds)) {
           for (const prevGenre of currentBook.genresIds) {
-            const genre = await findGenreByIdDb(prevGenre);
-            if (genre) {
-              bookGenres.push(genre as IVolume);
+            const genreA = await findGenreByIdDb(prevGenre);
+            if (genreA) {
+              bookGenres.push(genreA as IVolume);
             }
           }
         }
 
         if (genre) {
-          bookGenre = (await findOrCreateGenreByName(genre)) as IGenre;
+          bookGenre = await findOrCreateGenreByName(genre);
           if (bookGenre) {
             if (bookGenres.findIndex((item) => item === bookGenre) < 0) {
               bookGenres.push(bookGenre as IGenre);
@@ -296,9 +309,9 @@ export async function updateBook(
         }
 
         if (Array.isArray(genres)) {
-          for (const item of genres) {
-            if (item) {
-              const adGenre = await findOrCreateGenreByName(item);
+          for (const genreName of genres) {
+            if (genreName) {
+              const adGenre = await findOrCreateGenreByName(genreName);
               if (adGenre) {
                 if (bookGenres.findIndex((item) => item === adGenre) < 0) {
                   bookGenres.push(adGenre);
@@ -312,7 +325,7 @@ export async function updateBook(
 
         if (Array.isArray(currentBook.volumesIds)) {
           for (const prevVolume of currentBook.volumesIds) {
-            const volume = (await findVolumeByIdDb(prevVolume)) as IVolume;
+            const volume = await findVolumeByIdDb(prevVolume);
             if (volume) {
               bookVolumes.push(volume);
             }
@@ -330,6 +343,7 @@ export async function updateBook(
         if (bookVolumes.length === 0) {
           bookVolumes.push(await createVolumeDb(name));
         }
+
         const updatedBook = await updateBookDb(
           bookId,
           name,
@@ -343,8 +357,11 @@ export async function updateBook(
           bookVolumes,
           bookCountry
         );
+
         response.writeHead(200, { 'content-Type': 'application/json' });
-        response.end(JSON.stringify(updatedBook));
+        response.end(
+          JSON.stringify(await convertBookFromDbFormat(updatedBook))
+        );
       } catch {
         response.writeHead(500, { 'content-Type': 'application/json' });
         response.end(

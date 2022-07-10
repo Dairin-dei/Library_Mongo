@@ -11,13 +11,21 @@ export function findAllCountriesDb() {
   });
 }
 
-export function findCountryByIdDb(id: string): Promise<ICountry | null> {
+export function findCountryByIdDb(id: string): Promise<ICountry> {
+  try {
+    new ObjectId(id);
+  } catch {
+    console.log('Error in id');
+    return new Promise((resolve, reject) => {
+      resolve(null);
+    });
+  }
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('countries');
     collection.findOne({ _id: new ObjectId(id) }, (error, item) => {
       if (error) {
         console.log(error.message);
-        resolve(null);
+        resolve(EMPTY_COUNTRY);
       }
       resolve(item as unknown as ICountry);
     });
@@ -54,6 +62,14 @@ export function createCountryDb(name: string): Promise<ICountry> {
 }
 
 export function updateCountryDb(id: string, name: string) {
+  try {
+    new ObjectId(id);
+  } catch {
+    console.log('Error in id');
+    return new Promise((resolve, reject) => {
+      resolve(null);
+    });
+  }
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('countries');
     if (name) {
@@ -64,7 +80,7 @@ export function updateCountryDb(id: string, name: string) {
         (error, result) => {
           if (error) {
             console.log(error.message);
-            resolve(null);
+            resolve(EMPTY_COUNTRY);
           }
           resolve(result.value);
         }
@@ -74,12 +90,20 @@ export function updateCountryDb(id: string, name: string) {
 }
 
 export function removeCountryDb(id: string) {
+  try {
+    new ObjectId(id);
+  } catch {
+    console.log('Error in id');
+    return new Promise((resolve, reject) => {
+      resolve(null);
+    });
+  }
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('countries');
     collection.findOneAndDelete({ _id: new ObjectId(id) }, (error, result) => {
       if (error) {
         console.log(error.message);
-        resolve(null);
+        resolve(EMPTY_COUNTRY);
       }
       resolve(result.value);
     });

@@ -1,6 +1,7 @@
 import { IVolume } from '../tools/interfaces';
 import { getCollectionByName } from '../db';
 import { ObjectId } from 'mongodb';
+import { EMPTY_VOLUME } from '../tools/const';
 
 export function findAllVolumesDb() {
   return new Promise((resolve, reject) => {
@@ -10,12 +11,20 @@ export function findAllVolumesDb() {
 }
 
 export function findVolumeByIdDb(id: string): Promise<IVolume> {
+  try {
+    new ObjectId(id);
+  } catch {
+    console.log('Error in id');
+    return new Promise((resolve, reject) => {
+      resolve(null);
+    });
+  }
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('volumes');
     collection.findOne({ _id: new ObjectId(id) }, (error, item) => {
       if (error) {
         console.log(error.message);
-        resolve(null);
+        resolve(EMPTY_VOLUME);
       }
       resolve(item as unknown as IVolume);
     });
@@ -28,7 +37,7 @@ export function findVolumeByNameDb(name: string): Promise<IVolume | null> {
     collection.findOne({ name: name }, (error, item) => {
       if (error) {
         console.log(error.message);
-        resolve(null);
+        resolve(EMPTY_VOLUME);
       }
       resolve(item as unknown as IVolume);
     });
@@ -69,6 +78,14 @@ export async function updateVolumeDb(
   picture = '',
   year = 1
 ) {
+  try {
+    new ObjectId(id);
+  } catch {
+    console.log('Error in id');
+    return new Promise((resolve, reject) => {
+      resolve(null);
+    });
+  }
   const currentVolume: IVolume = await findVolumeByIdDb(id);
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('volumes');
@@ -88,7 +105,7 @@ export async function updateVolumeDb(
         (error, result) => {
           if (error) {
             console.log(error.message);
-            resolve(null);
+            resolve(EMPTY_VOLUME);
           }
           resolve(result.value);
         }
@@ -98,12 +115,20 @@ export async function updateVolumeDb(
 }
 
 export function removeVolumeDb(id: string) {
+  try {
+    new ObjectId(id);
+  } catch {
+    console.log('Error in id');
+    return new Promise((resolve, reject) => {
+      resolve(null);
+    });
+  }
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('volumes');
     collection.findOneAndDelete({ _id: new ObjectId(id) }, (error, result) => {
       if (error) {
         console.log(error.message);
-        resolve(null);
+        resolve(EMPTY_VOLUME);
       }
       resolve(result.value);
     });

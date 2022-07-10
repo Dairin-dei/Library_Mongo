@@ -82,7 +82,7 @@ export async function createNewLanguage(
 export async function findOrCreateLanguageByName(
   name: string
 ): Promise<ILanguage> {
-  const country: ILanguage | null = await findLanguageByNameDb(name);
+  const country: ILanguage = await findLanguageByNameDb(name);
   if (country) {
     return country;
   }

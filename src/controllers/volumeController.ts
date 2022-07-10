@@ -54,25 +54,16 @@ export async function createNewVolume(
   request.on('end', async () => {
     try {
       const { name, cabinet, shelf, picture, year } = JSON.parse(body);
-      if (name === undefined || name.trim() === '') {
-        response.writeHead(400, { 'content-Type': 'application/json' });
-        response.end(
-          JSON.stringify({
-            message:
-              "Hello. I'm sorry, but I couldn't add new volume. You should fill at least a name",
-          })
-        );
-      } else {
-        const newVolume = await createVolumeDb(
-          name,
-          cabinet,
-          shelf,
-          picture,
-          year
-        );
-        response.writeHead(201, { 'content-Type': 'application/json' });
-        response.end(JSON.stringify(newVolume));
-      }
+
+      const newVolume = await createVolumeDb(
+        name,
+        cabinet,
+        shelf,
+        picture,
+        year
+      );
+      response.writeHead(201, { 'content-Type': 'application/json' });
+      response.end(JSON.stringify(newVolume));
     } catch (error) {
       response.writeHead(400, { 'content-Type': 'application/json' });
       response.end(
@@ -86,7 +77,7 @@ export async function createNewVolume(
 }
 
 export async function findOrCreateVolumeByName(name: string): Promise<IVolume> {
-  const volume: IVolume | null = await findVolumeByNameDb(name);
+  const volume: IVolume = await findVolumeByNameDb(name);
   if (volume) {
     return volume;
   }
@@ -109,26 +100,16 @@ export async function updateVolume(
     request.on('end', async () => {
       try {
         const { name, cabinet, shelf, picture, year } = JSON.parse(body);
-        if (name === undefined || name.trim() === '') {
-          response.writeHead(400, { 'content-Type': 'application/json' });
-          response.end(
-            JSON.stringify({
-              message:
-                "Hello. I'm sorry, but I couldn't update this volume. You should send non-empty name",
-            })
-          );
-        } else {
-          const updatedVolume = await updateVolumeDb(
-            volumeId,
-            name,
-            cabinet,
-            shelf,
-            picture,
-            year
-          );
-          response.writeHead(200, { 'content-Type': 'application/json' });
-          response.end(JSON.stringify(updatedVolume));
-        }
+        const updatedVolume = await updateVolumeDb(
+          volumeId,
+          name,
+          cabinet,
+          shelf,
+          picture,
+          year
+        );
+        response.writeHead(200, { 'content-Type': 'application/json' });
+        response.end(JSON.stringify(updatedVolume));
       } catch {
         response.writeHead(500, { 'content-Type': 'application/json' });
         response.end(

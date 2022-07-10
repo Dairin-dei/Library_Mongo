@@ -7,29 +7,42 @@ import {
   IVolume,
 } from '../tools/interfaces';
 import { getCollectionByName } from '../db';
-import { addNewItemIntoArrayIDs, convertArrayToArrayIds } from '../tools/tools';
+import {
+  addNewItemIntoArrayIDs,
+  convertArrayToArrayIds,
+  convertBookFromDbFormat,
+} from '../tools/tools';
 import { ObjectId } from 'mongodb';
 import {
   EMPTY_AUTHOR,
+  EMPTY_BOOKDB,
   EMPTY_COUNTRY,
   EMPTY_GENRE,
   EMPTY_LANGUAGE,
 } from '../tools/const';
 
-export function findAllBooksDb() {
+export function findAllBooksDb(): Promise<Array<IBookDb>> {
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('books');
-    resolve(collection.find({}).toArray());
+    resolve(collection.find({}).toArray() as unknown as Array<IBookDb>);
   });
 }
 
 export function findBookByIdDb(id: string): Promise<IBookDb> {
+  try {
+    new ObjectId(id);
+  } catch {
+    console.log('Error in id');
+    return new Promise((resolve, reject) => {
+      resolve(null);
+    });
+  }
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('books');
     collection.findOne({ _id: new ObjectId(id) }, async (error, item) => {
       if (error) {
         console.log(error.message);
-        resolve(null);
+        resolve(EMPTY_BOOKDB);
       }
       resolve(item as unknown as IBookDb);
     });
@@ -80,7 +93,7 @@ export async function createBookDb(
         console.log(error.message);
         resolve(null);
       }
-      resolve(newBook);
+      resolve(newBook as IBookDb);
     });
   });
 }
@@ -97,31 +110,38 @@ export async function updateBookDb(
   year = 0,
   volumes: IVolume[] = [],
   country: ICountry = EMPTY_COUNTRY
-) {
+): Promise<IBookDb> {
+  try {
+    new ObjectId(id);
+  } catch {
+    console.log('Error in id');
+    return new Promise((resolve, reject) => {
+      resolve(null);
+    });
+  }
   const currentBook: IBookDb = await findBookByIdDb(id);
+  // console.log('updateBookDb', country);
+  // console.log(currentBook);
 
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('books');
 
-    if (authorMain) {
-      if (!currentBook.authorsIds.length) {
-        currentBook.authorMainId = authorMain._id;
-      }
-      currentBook.authorsIds = addNewItemIntoArrayIDs(
-        currentBook.authorsIds,
-        authorMain._id
-      );
+    if (authorMain.name !== '') {
+      currentBook.authorMainId = authorMain._id;
     }
-    console.log('genreMain', genreMain);
-    if (genreMain) {
+    if (authors.length) {
+      currentBook.authorsIds = convertArrayToArrayIds(authors);
+    }
+    if (genreMain.name !== '') {
       currentBook.genreMainId = genreMain._id;
-
-      currentBook.genresIds = addNewItemIntoArrayIDs(
-        currentBook.genresIds,
-        genreMain._id
-      );
     }
-    console.log('currentBook.genresIds', currentBook.genresIds);
+    if (genres.length) {
+      currentBook.genresIds = convertArrayToArrayIds(genres);
+    }
+    if (volumes.length) {
+      currentBook.volumesIds = convertArrayToArrayIds(volumes);
+    }
+    // console.log('currentBook.genresIds', currentBook.genresIds);
 
     collection.findOneAndUpdate(
       { _id: new ObjectId(id) },
@@ -131,33 +151,42 @@ export async function updateBookDb(
           originalName: originalName || currentBook.originalName,
           authorMainId: currentBook.authorMainId,
           authorsIds: currentBook.authorsIds,
-          languageId: language ? language._id : '',
+          languageId:
+            language.name !== '' ? language._id : currentBook.languageId,
           genreMainId: currentBook.genreMainId,
           genresIds: currentBook.genresIds,
           year: year !== 0 ? year : currentBook.year,
-          volumesIds: convertArrayToArrayIds(volumes),
-          countryId: country ? country._id : '',
+          volumesIds: currentBook.volumesIds,
+          countryId: country.name !== '' ? country._id : currentBook.countryId,
         },
       },
       { returnDocument: 'after' },
       (error, result) => {
         if (error) {
           console.log(error.message);
-          resolve(null);
+          resolve(EMPTY_BOOKDB);
         }
-        resolve(result.value);
+        resolve(result.value as unknown as IBookDb);
       }
     );
   });
 }
 
 export function removeBookDb(id: string) {
+  try {
+    new ObjectId(id);
+  } catch {
+    console.log('Error in id');
+    return new Promise((resolve, reject) => {
+      resolve(null);
+    });
+  }
   return new Promise((resolve, reject) => {
     const collection = getCollectionByName('books');
     collection.findOneAndDelete({ _id: new ObjectId(id) }, (error, result) => {
       if (error) {
         console.log(error.message);
-        resolve(null);
+        resolve(EMPTY_BOOKDB);
       }
       resolve(result.value);
     });

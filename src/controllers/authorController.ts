@@ -8,6 +8,8 @@ import {
 } from '../models/authorModel';
 import { findOrCreateCountryByName } from '../controllers/countryController';
 import { ICountry } from '../tools/interfaces';
+import { convertAuthorFromDbFormat } from '../tools/tools';
+import { EMPTY_COUNTRY } from '../tools/const';
 
 export async function findAllAuthors(
   request: IncomingMessage,
@@ -15,8 +17,12 @@ export async function findAllAuthors(
 ) {
   try {
     const authorsInDatabase = await findAllAuthorsDb();
+    const authorsArray = [];
+    for (const authorDb of authorsInDatabase) {
+      authorsArray.push(await convertAuthorFromDbFormat(authorDb));
+    }
     response.writeHead(200, { 'content-Type': 'application/json' });
-    response.end(JSON.stringify(authorsInDatabase));
+    response.end(JSON.stringify(authorsArray));
   } catch (error) {
     console.log("Sorry, can't get authors", error.message);
     response.writeHead(200, { 'content-Type': 'application/json' });
@@ -29,8 +35,9 @@ export async function findAuthor(
   response: ServerResponse
 ) {
   const authorId = request.url?.split('/')[1] || '0';
-  const author = await findAuthorByIdDb(authorId);
-
+  const author = await convertAuthorFromDbFormat(
+    await findAuthorByIdDb(authorId)
+  );
   if (author) {
     response.writeHead(200, { 'content-Type': 'application/json' });
     response.end(JSON.stringify(author));
@@ -64,11 +71,9 @@ export async function createNewAuthor(
         );
       } else {
         const authorCountry = await findOrCreateCountryByName(country);
-        const newAuthor = await createAuthorDb(
-          name,
-          fullName,
-          originalName,
-          authorCountry
+
+        const newAuthor = await convertAuthorFromDbFormat(
+          await createAuthorDb(name, fullName, originalName, authorCountry)
         );
         response.writeHead(201, { 'content-Type': 'application/json' });
         response.end(JSON.stringify(newAuthor));
@@ -90,8 +95,10 @@ export async function updateAuthor(
   response: ServerResponse
 ) {
   const authorId = request.url?.split('/')[1] || '0';
-  const author = await findAuthorByIdDb(authorId);
-  if (author) {
+  const authorDb = await convertAuthorFromDbFormat(
+    await findAuthorByIdDb(authorId)
+  );
+  if (authorDb) {
     let body = '';
     request.on('data', (chunk) => {
       body += chunk.toString();
@@ -100,29 +107,22 @@ export async function updateAuthor(
     request.on('end', async () => {
       try {
         const { name, fullName, originalName, country } = JSON.parse(body);
-        if (name === undefined || name.trim() === '') {
-          response.writeHead(400, { 'content-Type': 'application/json' });
-          response.end(
-            JSON.stringify({
-              message:
-                "Hello. I'm sorry, but I couldn't update this author. You should send non-empty name",
-            })
-          );
-        } else {
-          let authorCountry: ICountry | string = '';
-          if (country) {
-            authorCountry = await findOrCreateCountryByName(country);
-          }
-          const updatedAuthor = await updateAuthorDb(
+        let authorCountry: ICountry = authorDb.country;
+        if (country) {
+          authorCountry = await findOrCreateCountryByName(country);
+        }
+        console.log('update author', authorCountry);
+        const updatedAuthor = await convertAuthorFromDbFormat(
+          await updateAuthorDb(
             authorId,
             name,
             fullName,
             originalName,
             authorCountry
-          );
-          response.writeHead(200, { 'content-Type': 'application/json' });
-          response.end(JSON.stringify(updatedAuthor));
-        }
+          )
+        );
+        response.writeHead(200, { 'content-Type': 'application/json' });
+        response.end(JSON.stringify(updatedAuthor));
       } catch {
         response.writeHead(500, { 'content-Type': 'application/json' });
         response.end(

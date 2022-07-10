@@ -82,9 +82,9 @@ export async function createNewGenre(
 }
 
 export async function findOrCreateGenreByName(name: string): Promise<IGenre> {
-  const country: IGenre | null = await findGenreByNameDb(name);
-  if (country) {
-    return country;
+  const genre: IGenre = await findGenreByNameDb(name);
+  if (genre) {
+    return genre;
   }
   const newGenre: IGenre = await createGenreDb(name);
   return newGenre;

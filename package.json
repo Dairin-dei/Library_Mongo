@@ -4,8 +4,8 @@
   "private": true,
   "start": "nodemon ./src/index.ts",
   "scripts": {
-    "start:dev": "nodemon ./src/index.ts",
-    "start:prod": "npm run build && npm run prod",
+    "dev": "nodemon ./src/index.ts",
+    "start": "npm run build && npm run prod",
     "prod": "node dist/main.js",
     "build": "webpack --mode production"
   },
